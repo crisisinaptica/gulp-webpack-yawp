@@ -1,0 +1,25 @@
+{
+  "extends":
+  [
+    "eslint:recommended",
+    "idiomatic",
+    "plugin:jsdoc/recommended"
+  ],
+  "rules":
+  {
+    "quotes"  : [ 2, "single" ],
+    "no-alert": 0
+  },
+  "parserOptions":
+  {
+    "ecmaVersion": 2020,
+    "sourceType" : "module"
+  },
+  "env":
+  {
+    "node"   : true,
+    "mocha"  : true,
+    "es6"    : true
+  },
+  "plugins" : [ "jsdoc" ]
+}

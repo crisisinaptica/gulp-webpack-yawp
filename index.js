@@ -16,6 +16,7 @@ const
 
   //  node
   { join } = require( 'path' ),
+  stream = require( 'stream' ),
 
   // npm modules
   File = require( 'vinyl' ),
@@ -65,12 +66,12 @@ let
 
 /**
  * @param {yawpOptions} pluginOptions - Webpack configuration
- * @returns {Stream.Readable} Node stream
+ * @returns {stream} Node stream
  */
 function gulpWebpack( pluginOptions ) {
 
   if ( typeof pluginOptions !== 'object' ) {
-    this.emit( 'error', new PluginError( {
+    this.emit( 'error', new PluginError({
       plugin: PLUGIN_NAME,
       message: 'No option object provided.',
     }));
@@ -153,7 +154,7 @@ function gulpWebpack( pluginOptions ) {
       logStats = stats => {
         if ( stats.hasErrors()) {
           if ( !watch ) {
-            this.emit( 'error', new PluginError( {
+            this.emit( 'error', new PluginError({
               plugin: PLUGIN_NAME,
               message: stats.toJson().errors.join( '\n' )
             }));
@@ -170,7 +171,7 @@ function gulpWebpack( pluginOptions ) {
             { colors: TERMINAL_HAS_COLOR }
           )));
         }
-        if( watch ) {
+        if ( watch ) {
           log( 'Webpack is watching...' );
         }
       },
@@ -179,7 +180,7 @@ function gulpWebpack( pluginOptions ) {
       notifyCb = ( err, stats ) => {
         if ( err ) {
           this.emit( 'error', new PluginError({
-            plugin:  PLUGIN_NAME,
+            plugin: PLUGIN_NAME,
             message: err.stack || err
           }));
           return;
