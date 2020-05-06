@@ -61,7 +61,8 @@ let
 
 
 /**
- * @param {yawpOptions} pluginOptions - Webpack configuration
+ * @param {yawpOptions} pluginOptions
+ *   Plugin configuration
  * @returns {stream} Node stream
  */
 function gulpWebpack( pluginOptions ) {
@@ -89,7 +90,16 @@ function gulpWebpack( pluginOptions ) {
       // defaults
       {
         logMode: 'silent',
-        statsOptions: null,
+        statsOptions: {
+          builtAt: false,
+          chunks: false,
+          colors: TERMINAL_HAS_COLOR,
+          children: false,
+          hash: false,
+          modules: false,
+          performance: true,
+          warnings: true,
+        },
         watch: false,
         watchOptions: {
           builtAt: false,
