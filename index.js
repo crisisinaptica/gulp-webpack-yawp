@@ -25,34 +25,30 @@ const
   log = require( 'fancy-log' ),
   through = require( 'through2' ),
   { clone, merge } = require( 'lodash' ),
-  webpack = require( 'webpack' ),
   applySourceMap = require( 'vinyl-sourcemaps-apply' ),
 
   TERMINAL_HAS_COLOR = require( 'supports-color' ).stdout.hasBasic,
-
-  defaultStatsOptions = {
-    builtAt: false,
-    chunks: false,
-    colors: TERMINAL_HAS_COLOR,
-    children: false,
-    hash: false,
-    modules: false,
-    performance: true,
-    warnings: true,
-  },
-
   testIsFileName = /(?<name>^.*)(?<ext>\..*$)/,
   testIsSourceMap = /(?:[^.]*\/)(?<fileName>.*)(?:\.map.*)/;
 
+
 let
 
-  memoryFileSystemCache;
+  cache = {
+    webpackInstance: null,
+    wpConfig: null,
+    memoryFilesystem: null,
+  };
 
 
 /**
  * @typedef {object} yawpOptions
+ * @property {object} webpack
+ *   Webpack instance
  * @property {object} wpConfig
  *   Webpack configuration
+ * @property {string} [logMode=stats]
+ *   Valid values are 'stats', 'silent', verbose'
  * @property {object} statsOptions
  *   Stats to after compilation is done
  * @property {boolean} verbose
@@ -70,22 +66,55 @@ let
  */
 function gulpWebpack( pluginOptions ) {
 
-  if ( typeof pluginOptions !== 'object' ) {
-    this.emit( 'error', new PluginError({
-      plugin: PLUGIN_NAME,
-      message: 'No option object provided.',
-    }));
+  if (
+    pluginOptions &&
+    (
+      pluginOptions.webpack !== cache.webpackInstance ||
+      pluginOptions.wpConfig !== cache.wpConfig
+    )
+  ) {
+    cache = {};
   }
 
   const
 
     {
+      logMode,
       statsOptions,
-      verbose,
       watch,
       watchOptions,
+      webpack,
       wpConfig,
-    } = pluginOptions,
+    } = merge(
+      // defaults
+      {
+        logMode: 'silent',
+        statsOptions: null,
+        watch: false,
+        watchOptions: {
+          builtAt: false,
+          chunks: false,
+          colors: TERMINAL_HAS_COLOR,
+          children: false,
+          hash: false,
+          modules: false,
+          performance: true,
+          warnings: true,
+        },
+        webpack: ( function evalWebpackInstance() {
+          const webpack = cache.webpackInstance || require( 'webpack' );
+          cache.webpackInstance = webpack;
+          return webpack;
+        }()),
+        wpConfig: ( function evalWebpackConfig() {
+          const config = cache.webpackConfig || null;
+          cache.webpackConfig = config;
+          return config;
+        }()),
+      },
+      // user configuration
+      pluginOptions || {},
+    ),
 
     [
       config,
@@ -93,14 +122,18 @@ function gulpWebpack( pluginOptions ) {
     ] = Array.isArray( wpConfig ) ?
       [
         null,
-        wpConfig.map( config => clone( config )),
+        wpConfig.map( config => clone( config )) || {},
       ] :
       [
-        clone( wpConfig ),
+        clone( wpConfig ) || {},
         null
       ],
 
-    files = new Map();
+    files = new Map(),
+
+    newStream = through.obj( transform, flush );
+
+  return newStream;
 
 
   /**
@@ -116,7 +149,7 @@ function gulpWebpack( pluginOptions ) {
     }
 
     if ( !file.isBuffer()) {
-      this.emit( 'error', new PluginError({
+      newStream.emit( 'error', new PluginError({
         plugin: PLUGIN_NAME,
         message: 'Only buffers are supported.'
       }));
@@ -135,7 +168,7 @@ function gulpWebpack( pluginOptions ) {
 
     if ( !files.size ) {
       log.warn( `${ PLUGIN_NAME }: No files were piped in.` );
-      this.emit( 'end' );
+      newStream.emit( 'end' );
       flushCb( null );
     }
 
@@ -152,25 +185,27 @@ function gulpWebpack( pluginOptions ) {
 
 
       logStats = stats => {
+
         if ( stats.hasErrors()) {
           if ( !watch ) {
-            this.emit( 'error', new PluginError({
+            newStream.emit( 'error', new PluginError({
               plugin: PLUGIN_NAME,
               message: stats.toJson().errors.join( '\n' )
             }));
           }
         }
-        if ( verbose ) {
-          log( stats.toString({
-            colors: TERMINAL_HAS_COLOR,
-          }));
-        } else {
-          log( stats.toString( merge(
-            defaultStatsOptions,
-            statsOptions || {},
-            { colors: TERMINAL_HAS_COLOR }
-          )));
+
+        switch ( logMode ) {
+        default: case 'stats':
+          log( stats.toString( statsOptions ));
+          break;
+        case 'verbose':
+          log( stats.toString({ colors: TERMINAL_HAS_COLOR }));
+          break;
+        case 'silent':
+          return;
         }
+
         if ( watch ) {
           log( 'Webpack is watching...' );
         }
@@ -196,35 +231,37 @@ function gulpWebpack( pluginOptions ) {
 
       setUpCompiler = compiler => {
         const memoryFileSystem = compiler.outputFileSystem =
-            memoryFileSystemCache || new MemoryFileSystem();
-        memoryFileSystemCache = memoryFileSystem;
+          cache.memoryFilesystem || new MemoryFileSystem();
+        cache.memoryFilesystem = memoryFileSystem;
         compiler.hooks.afterEmit.tap(
           PLUGIN_NAME,
           compilation => {
-            Reflect.ownKeys( compilation.assets ).forEach( outName => {
-              const
-                outPath = join( compiler.outputPath, outName ),
-                outContents = memoryFileSystem.readFileSync( outPath );
-              if ( files.has( outName )) {
-                const sourceFile = files.get( outName );
-                sourceFile.contents = outContents;
-                this.push( sourceFile );
-              } else {
-                const matchResult = outName.match( testIsSourceMap );
-                if ( matchResult && matchResult.groups ) {
-                  const mappedSource = files.get( matchResult.groups.fileName );
-                  if ( mappedSource && mappedSource.sourceMap ) {
-                    applySourceMap( mappedSource, outContents.toString());
-                    return;
+            Reflect.ownKeys( compilation.assets )
+              // eslint-disable-next-line no-inline-comments
+              .forEach( /** @type {string} */outName => {
+                const
+                  outPath = join( compiler.outputPath, outName ),
+                  outContents = memoryFileSystem.readFileSync( outPath );
+                if ( files.has( outName )) {
+                  const sourceFile = files.get( outName );
+                  sourceFile.contents = outContents;
+                  this.push( sourceFile );
+                } else {
+                  const matchResult = outName.match( testIsSourceMap );
+                  if ( matchResult && matchResult.groups ) {
+                    const mapSource = files.get( matchResult.groups.fileName );
+                    if ( mapSource && mapSource.sourceMap ) {
+                      applySourceMap( mapSource, outContents.toString());
+                      return;
+                    }
                   }
+                  this.push( new File({
+                    base: compiler.outputPath,
+                    path: join( compiler.outputPath, outName ),
+                    contents: outContents,
+                  }));
                 }
-                this.push( new File({
-                  base: compiler.outputPath,
-                  path: join( compiler.outputPath, outName ),
-                  contents: outContents,
-                }));
-              }
-            });
+              });
           }
         )
       },
@@ -246,8 +283,6 @@ function gulpWebpack( pluginOptions ) {
       compiler.run( notifyCb );
 
   }
-
-  return through.obj( transform, flush );
 
 }
 
