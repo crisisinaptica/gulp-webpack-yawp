@@ -6,7 +6,7 @@ const
   { src, dest } = require( 'gulp' ),
 
   isWebpackOutputEntry1 = /entry1/i,
-  isWebpacOutputEntry2 = /entry2/i;
+  isWebpackOutputEntry2 = /entry2/i;
 
 
 test.before( 'cleanup', () => {
@@ -31,9 +31,6 @@ test.cb( 'compile without options passed', t => {
       );
     });
 });
-
-
-test.todo( 'compiles webpack config entry points' );
 
 
 test.cb( 'compile piped files', t => {
@@ -63,7 +60,31 @@ test.cb( 'compile piped files', t => {
 });
 
 
-test.todo( 'compiles mixed entry points' );
+test.cb( 'compile webpack config entry points', t => {
+  src( 'test/fixtures/entry1.js' )
+    .pipe( gulpWebpack(
+      {
+        wpConfig: {
+          entry: {
+            entry2: './test/fixtures/entry2.js'
+          }
+        }
+      }
+    ))
+    .pipe( dest( 'test/out/config_entry' ))
+    .on( 'end', () => {
+      fs.readFile(
+        'test/out/config_entry/entry2.js',
+        ( err, data ) => {
+          if ( err ) {
+            t.fail( err.message );
+          }
+          t.regex( data.toString(), isWebpackOutputEntry2 );
+          t.end();
+        }
+      );
+    });
+});
 
 
 test.todo( 'multi compiler support' );
