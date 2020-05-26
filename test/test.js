@@ -87,7 +87,50 @@ test.cb( 'compile webpack config entry points', t => {
 });
 
 
-test.todo( 'multi compiler support' );
+test.cb( 'multi compiler support', t => {
+  t.plan( 2 );
+  src( 'test/fixtures/entry1.js' )
+    .pipe( gulpWebpack(
+      {
+        wpConfig: [
+          {
+            mode: 'development',
+            output: {
+              filename: '[name]-dev.js'
+            }
+          },
+          {
+            mode: 'production',
+            output: {
+              filename: '[name]-prod.js'
+            }
+          },
+        ]
+      }
+    ))
+    .pipe( dest( 'test/out/multi-compiler' ))
+    .on( 'end', () => {
+      fs.readFile(
+        'test/out/multi-compiler/entry1-dev.js',
+        err => {
+          if ( err ) {
+            t.fail( err.message );
+          }
+          t.pass();
+          fs.readFile(
+            'test/out/multi-compiler/entry1-prod.js',
+            err => {
+              if ( err ) {
+                t.fail( err.message );
+              }
+              t.pass();
+              t.end();
+            }
+          );
+        }
+      );
+    });
+});
 
 
 test.todo( 'vinyl objects i/o consistency' );
