@@ -6,7 +6,8 @@ const
   { src, dest } = require( 'gulp' ),
 
   isWebpackOutputEntry1 = /entry1/i,
-  isWebpackOutputEntry2 = /entry2/i;
+  isWebpackOutputEntry2 = /entry2/i,
+  isWebpackDevelopmentBundle = /webpackBootstrap/i;
 
 
 test.before( 'cleanup', () => {
@@ -88,7 +89,7 @@ test.cb( 'compile webpack config entry points', t => {
 
 
 test.cb( 'multi compiler support', t => {
-  t.plan( 2 );
+  t.plan( 4 );
   src( 'test/fixtures/entry1.js' )
     .pipe( gulpWebpack(
       {
@@ -112,18 +113,22 @@ test.cb( 'multi compiler support', t => {
     .on( 'end', () => {
       fs.readFile(
         'test/out/multi-compiler/entry1-dev.js',
-        err => {
+        ( err, data ) => {
           if ( err ) {
             t.fail( err.message );
           }
-          t.pass();
+          const fileContents = data.toString();
+          t.regex( fileContents, isWebpackOutputEntry1 );
+          t.regex( fileContents, isWebpackDevelopmentBundle );
           fs.readFile(
             'test/out/multi-compiler/entry1-prod.js',
-            err => {
+            ( err, data ) => {
               if ( err ) {
                 t.fail( err.message );
               }
-              t.pass();
+              const fileContents = data.toString();
+              t.regex( fileContents, isWebpackOutputEntry1 );
+              t.notRegex( fileContents, isWebpackDevelopmentBundle );
               t.end();
             }
           );
