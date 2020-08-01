@@ -3,6 +3,7 @@ const
   test = require( 'ava' ),
   gulpWebpack = require( '../index' ),
   gulpSourceMaps = require( 'gulp-sourcemaps' ),
+  named = require( 'vinyl-named' ),
   fs = require( 'fs' ),
   through = require( 'through2' ),
   { src, dest } = require( 'gulp' ),
@@ -202,4 +203,28 @@ test.cb( 'gulp-sourcemaps support', t => {
 });
 
 
-test.todo( 'vinyl-named support' );
+test.cb( 'vinyl-named support', t => {
+  src( 'test/fixtures/*.js' )
+    .pipe( named())
+    .pipe( gulpWebpack())
+    .pipe( dest( 'test/out/vinyl-named_support' ))
+    .on( 'end', () => {
+      fs.readFile(
+        'test/out/vinyl-named_support/entry1.js',
+        ( err ) => {
+          if ( err ) {
+            t.fail( err.message );
+          }
+          fs.readFile(
+            'test/out/vinyl-named_support/entry2.js',
+            ( err ) => {
+              if ( err ) {
+                t.fail( err.message );
+              }
+              t.end();
+            }
+          );
+        }
+      );
+    });
+});

@@ -43,6 +43,7 @@
     "gulp": "^4.0.2",
     "gulp-sourcemaps": "^2.6.5",
     "vinyl-fs": "^3.0.3",
+    "vinyl-named": "^1.1.0",
     "webpack": "^4.43.0"
   },
   "ava": {
