@@ -154,7 +154,27 @@ test.cb( 'vinyl objects i/o consistency', t => {
 });
 
 
-test.todo( 'compile sourcemaps' );
+test.cb( 'compile source maps', t => {
+  src( 'test/fixtures/entry1.js' )
+    .pipe( gulpWebpack({
+      wpConfig: {
+        mode: 'development',
+        devtool: 'sourcemap',
+      },
+      logMode: 'silent'
+    }))
+    .pipe( dest( 'test/out/compile_sourcemaps' ))
+    .on( 'end', () => {
+      fs.readFile(
+        'test/out/compile_sourcemaps/entry1.js.map',
+        ( err ) => {
+          if ( err ) {
+            t.fail( err.message );
+          }
+          t.end();
+        });
+    });
+});
 
 
 test.todo( 'gulp-sourcemaps support' );
