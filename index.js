@@ -47,13 +47,13 @@ let
  *   Webpack instance
  * @property {object} wpConfig
  *   Webpack configuration
- * @property {string} [logMode=stats]
+ * @property {string} [logMode=silent]
  *   Valid values are 'stats', 'silent', verbose'
  * @property {object} statsOptions
  *   Stats to after compilation is done
- * @property {boolean} verbose
+ * @property {boolean} [verbose=false]
  *   Verbose output
- * @property {boolean} watch
+ * @property {boolean} [watch=false]
  *   Execute webpack in watch mode
  * @property {object} watchOptions
  *   Webpack watch mode options
@@ -100,6 +100,7 @@ function gulpWebpack( pluginOptions ) {
           performance: true,
           warnings: true,
         },
+        verbose: false,
         watch: false,
         watchOptions: {
           builtAt: false,
