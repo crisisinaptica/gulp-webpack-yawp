@@ -117,7 +117,7 @@ npm run test
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/crisisinaptica/gulp-webpack-yawp/tags). 
 
 ## Contributing
 
@@ -127,7 +127,7 @@ Issues and PR are welcomed.
 
 * **Sergio Jiménez Herena** - *Initial work* - [crisisinaptica](https://github.com/crisisinaptica)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/crisisinaptica/gulp-webpack-yawp/contributors) who participated in this project.
 
 ## License
 
