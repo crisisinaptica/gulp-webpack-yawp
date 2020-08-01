@@ -2,6 +2,7 @@ const
 
   test = require( 'ava' ),
   gulpWebpack = require( '../index' ),
+  gulpSourceMaps = require( 'gulp-sourcemaps' ),
   fs = require( 'fs' ),
   through = require( 'through2' ),
   { src, dest } = require( 'gulp' ),
@@ -177,7 +178,28 @@ test.cb( 'compile source maps', t => {
 });
 
 
-test.todo( 'gulp-sourcemaps support' );
+test.cb( 'gulp-sourcemaps support', t => {
+  src( 'test/fixtures/entry1.js' )
+    .pipe( gulpSourceMaps.init())
+    .pipe( gulpWebpack({
+      wpConfig: {
+        mode: 'development',
+      },
+      logMode: 'silent'
+    }))
+    .pipe( gulpSourceMaps.write( '.' ))
+    .pipe( dest( 'test/out/gulp-sourcemaps_support' ))
+    .on( 'end', () => {
+      fs.readFile(
+        'test/out/gulp-sourcemaps_support/entry1.js.map',
+        ( err ) => {
+          if ( err ) {
+            t.fail( err.message );
+          }
+          t.end();
+        });
+    });
+});
 
 
 test.todo( 'vinyl-named support' );

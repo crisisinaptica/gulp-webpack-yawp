@@ -41,6 +41,7 @@
     "eslint-config-idiomatic": "^4.0.0",
     "eslint-plugin-jsdoc": "^24.0.2",
     "gulp": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.5",
     "vinyl-fs": "^3.0.3",
     "webpack": "^4.43.0"
   },
