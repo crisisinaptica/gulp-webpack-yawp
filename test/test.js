@@ -3,6 +3,7 @@ const
   test = require( 'ava' ),
   gulpWebpack = require( '../index' ),
   fs = require( 'fs' ),
+  through = require( 'through2' ),
   { src, dest } = require( 'gulp' ),
 
   isWebpackOutputEntry1 = /entry1/i,
@@ -35,7 +36,6 @@ test.cb( 'compile without options passed', t => {
 
 
 test.cb( 'compile piped files', t => {
-  t.plan( 1 );
   src( 'test/fixtures/entry1.js' )
     .pipe( gulpWebpack({
       wpConfig: {
@@ -138,7 +138,20 @@ test.cb( 'multi compiler support', t => {
 });
 
 
-test.todo( 'vinyl objects i/o consistency' );
+test.cb( 'vinyl objects i/o consistency', t => {
+  t.plan( 1 );
+  src( 'test/fixtures/entry1.js' )
+    .pipe( through.obj( function transform( file, _, cb ) {
+      file.test = true;
+      cb( null, file );
+    }))
+    .pipe( gulpWebpack())
+    .pipe( through.obj( function transform( file, _, cb ) {
+      t.true( file.test );
+      t.end();
+      cb( null, file );
+    }))
+});
 
 
 test.todo( 'compile sourcemaps' );
