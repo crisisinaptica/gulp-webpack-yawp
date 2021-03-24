@@ -33,7 +33,7 @@
   },
   "peerDependencies": {
     "gulp": "^4.0.0",
-    "webpack": "^5.28.0"
+    "webpack": "^5.0.0"
   },
   "devDependencies": {
     "ava": "^3.8.1",
