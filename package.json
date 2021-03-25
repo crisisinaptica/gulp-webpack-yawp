@@ -1,6 +1,6 @@
 {
   "name": "gulp-webpack-yawp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Yet another Webpack plugin (for Gulp)",
   "repository": "https://github.com/crisisinaptica/gulp-webpack-yawp",
   "author": "Sergio Jiménez Herena",
