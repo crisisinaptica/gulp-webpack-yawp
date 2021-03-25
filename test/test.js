@@ -14,7 +14,7 @@ const
 
 
 test.before( 'cleanup', () => {
-  fs.rmdirSync( 'test/out', { recursive: true });
+  fs.rmSync( 'test/out', { recursive: true, force: true });
 });
 
 
@@ -161,7 +161,7 @@ test.cb( 'compile source maps', t => {
     .pipe( gulpWebpack({
       wpConfig: {
         mode: 'development',
-        devtool: 'sourcemap',
+        devtool: 'source-map',
       },
       logMode: 'silent'
     }))
