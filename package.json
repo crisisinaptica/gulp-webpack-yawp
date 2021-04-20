@@ -1,6 +1,6 @@
 {
   "name": "gulp-webpack-yawp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Yet another Webpack plugin (for Gulp)",
   "repository": "https://github.com/crisisinaptica/gulp-webpack-yawp",
   "author": "Sergio Jiménez Herena",
@@ -33,7 +33,7 @@
   },
   "peerDependencies": {
     "gulp": "^4.0.0",
-    "webpack": "^4.0.0"
+    "webpack": "^5.0.0"
   },
   "devDependencies": {
     "ava": "^3.8.1",
@@ -43,7 +43,7 @@
     "gulp-sourcemaps": "^2.6.5",
     "vinyl-fs": "^3.0.3",
     "vinyl-named": "^1.1.0",
-    "webpack": "^4.43.0"
+    "webpack": "5.28.0"
   },
   "ava": {
     "files": [
